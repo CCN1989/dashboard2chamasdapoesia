@@ -201,22 +201,26 @@
     let dadosOriginais = [];
     google.charts.load('current', {'packages':['corechart'], 'language': 'pt-BR'});
 
-    function carregarDadosIniciais() {
-      fetch(WEB_APP_URL)
-        .then(response => response.json())
-        .then(dados => {
-          dadosOriginais = dados;
-          document.getElementById('login-overlay').style.display = 'none';
-          document.getElementById('dashboard-content').style.display = 'flex';
-          popularListasSuspensas(dados);
-          processarERenderizar(dados);
-        })
-        .catch(error => {
-          console.error('Erro:', error);
-          alert('Erro ao carregar dados. Verifique a URL do Web App.');
-          document.getElementById('loading').style.display = 'none';
-        });
-    }
+   function carregarDadosIniciais() {
+  // COLE A URL QUE VOCÊ GEROU NO PASSO ANTERIOR AQUI
+  const urlWebApp = "https://script.google.com/macros/s/AKfycbwV1wCmoNKKCNHIlWHZCGcsysgg2aCVXjLymmjogOEpkrhD_LY6StWiG1wBIysLwhlKfw/exec"; 
+
+  fetch(urlWebApp)
+    .then(response => response.json())
+    .then(dados => {
+      dadosOriginais = dados;
+      // Agora o comportamento é idêntico: limpa a tela de login e mostra os dados
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('dashboard-content').style.display = 'flex';
+      
+      popularListasSuspensas(dados);
+      processarERenderizar(dados);
+    })
+    .catch(error => {
+      console.error('Erro ao buscar dados:', error);
+      alert('Erro ao conectar com a planilha. Verifique se a URL está correta e se foi implantada como "Qualquer pessoa".');
+    });
+}
 
     function popularListasSuspensas(dados) {
       const mapeamento = {'f_cat': 'categoria', 'f_ent': 'entidade', 'f_cid': 'cidade', 'f_reg': 'regiao', 'f_sta': 'status'};
@@ -272,3 +276,4 @@
   </script>
 </body>
 </html>
+
