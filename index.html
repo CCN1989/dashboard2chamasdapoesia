@@ -66,9 +66,9 @@
       font-weight: bold;
     }
 
-    /* --- ESTILO DO DASHBOARD (INICIALMENTE OCULTO) --- */
+    /* --- ESTILO DO DASHBOARD --- */
     #dashboard-content {
-      display: none; /* Oculto até o login */
+      display: none;
       width: 100%;
       flex-direction: column;
       align-items: center;
@@ -76,7 +76,7 @@
 
     .header-container {
       width: 100%;
-      background-color: #f78f06;
+      background-color: white;
       display: flex;
       justify-content: center;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -123,6 +123,9 @@
     #chart_categorias, #chart_status { width: 100%; height: 250px; }
 
     .btn-sair { width: 250px; height: 45px; background: var(--accent-red); color: white; display: flex; align-items: center; justify-content: center; margin: 40px auto; text-decoration: none; font-weight: bold; border-radius: 8px; }
+    
+    /* Loading Spinner */
+    #loading { display: none; color: white; margin-top: 10px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -133,6 +136,7 @@
       <input type="text" id="user" placeholder="Usuário">
       <input type="password" id="pass" placeholder="Senha">
       <button onclick="checkLogin()">Entrar</button>
+      <div id="loading">Carregando dados...</div>
       <p id="login-error" style="color: red; display: none; margin-top: 10px; font-size: 12px;">Usuário ou senha incorretos!</p>
     </div>
   </div>
@@ -156,9 +160,8 @@
           <div class="filter-group"><label>Status</label><select id="f_sta" style="width: 150px;"></select></div>
         </div>
         <div style="text-align: center; margin-top: 15px;">
-          <button onclick="aplicarFiltros()" style="background: var(--header-color); color: white;">Filtrar</button>
-          <button onclick="limparFiltros()" style="background: #eee;">Limpar</button>
-          <button onclick="exportarPDF()" style="background: #D35400; color: white;">Gerar PDF</button>
+          <button onclick="aplicarFiltros()" style="background: var(--header-color); color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer;">Filtrar</button>
+          <button onclick="limparFiltros()" style="background: #eee; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer;">Limpar</button>
         </div>
       </div>
 
@@ -179,30 +182,40 @@
   </div>
 
   <script>
-    // FUNÇÃO DE LOGIN
+    // URL DO SEU GOOGLE WEB APP (SUBSTITUA AQUI)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwV1wCmoNKKCNHIlWHZCGcsysgg2aCVXjLymmjogOEpkrhD_LY6StWiG1wBIysLwhlKfw/exec";
+
     function checkLogin() {
       const u = document.getElementById('user').value;
       const p = document.getElementById('pass').value;
 
       if (u === "Artistica" && p === "Cn1989") {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('dashboard-content').style.display = 'flex';
-        carregarDadosIniciais(); // Só carrega os dados após o login
+        document.getElementById('login-error').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+        carregarDadosIniciais();
       } else {
         document.getElementById('login-error').style.display = 'block';
       }
     }
 
-    // --- MANTEMOS O RESTANTE DO SCRIPT ORIGINAL ---
     let dadosOriginais = [];
     google.charts.load('current', {'packages':['corechart'], 'language': 'pt-BR'});
 
     function carregarDadosIniciais() {
-      google.script.run.withSuccessHandler(function(dados) {
-        dadosOriginais = dados;
-        popularListasSuspensas(dados);
-        processarERenderizar(dados);
-      }).getDadosDashboard();
+      fetch(WEB_APP_URL)
+        .then(response => response.json())
+        .then(dados => {
+          dadosOriginais = dados;
+          document.getElementById('login-overlay').style.display = 'none';
+          document.getElementById('dashboard-content').style.display = 'flex';
+          popularListasSuspensas(dados);
+          processarERenderizar(dados);
+        })
+        .catch(error => {
+          console.error('Erro:', error);
+          alert('Erro ao carregar dados. Verifique a URL do Web App.');
+          document.getElementById('loading').style.display = 'none';
+        });
     }
 
     function popularListasSuspensas(dados) {
@@ -255,10 +268,6 @@
       
       let dataSta = [['Status', 'Total', {role:'style'}], ['CONFIRMADA', conf, '#2E7D32'], ['ESPERA', esp, '#C62828']];
       new google.visualization.BarChart(document.getElementById('chart_status')).draw(google.visualization.arrayToDataTable(dataSta), { title: 'STATUS' });
-    }
-
-    function exportarPDF() {
-      google.script.run.withSuccessHandler(url => window.open(url, '_blank')).gerarRelatorioPDF(dadosOriginais);
     }
   </script>
 </body>
