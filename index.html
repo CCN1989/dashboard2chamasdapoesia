@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <base target="_top">
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    :root {
+      --bg-color: #f78f06;
+      --header-color: #4f4c2f;
+      --card-bg: #ffffff;
+      --text-main: #333333;
+      --accent-red: #C62828;
+      --accent-green: #2E7D32;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 0;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* --- ESTILO DA TELA DE LOGIN --- */
+    #login-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-color: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 300px;
+    }
+
+    .login-box h2 { color: var(--header-color); margin-bottom: 20px; }
+    .login-box input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    .login-box button {
+      width: 100%;
+      padding: 10px;
+      background-color: var(--header-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* --- ESTILO DO DASHBOARD (INICIALMENTE OCULTO) --- */
+    #dashboard-content {
+      display: none; /* Oculto até o login */
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header-container {
+      width: 100%;
+      background-color: #f78f06;
+      display: flex;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header-image {
+      width: 100%;
+      max-width: 1200px;
+      height: auto;
+      display: block;
+    }
+
+    .header-subtitulo {
+      width: 100%;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 18px;
+      font-weight: bold;
+      color: #000000;
+      text-transform: uppercase;
+    }
+
+    .main-container {
+      width: 95%;
+      max-width: 1180px;
+      padding: 10px 20px 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .filter-section { width: 100%; margin-bottom: 25px; }
+    .filter-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; }
+    .filter-group { display: flex; flex-direction: column; }
+    label { font-weight: bold; color: white; font-size: 12px; margin-bottom: 4px; }
+    select { border: none; border-radius: 5px; padding: 6px; outline: none; }
+
+    .kpi-container { display: flex; justify-content: center; flex-wrap: wrap; width: 100%; gap: 15px; margin-bottom: 25px; }
+    .kpi-card { flex: 1; min-width: 220px; background: white; padding: 20px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--header-color); }
+    .kpi-value { font-size: 32px; font-weight: bold; }
+
+    .charts-wrapper { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; width: 100%; }
+    .chart-box { flex: 1; min-width: 450px; background: white; padding: 15px; border-radius: 12px; }
+    #chart_categorias, #chart_status { width: 100%; height: 250px; }
+
+    .btn-sair { width: 250px; height: 45px; background: var(--accent-red); color: white; display: flex; align-items: center; justify-content: center; margin: 40px auto; text-decoration: none; font-weight: bold; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+  <div id="login-overlay">
+    <div class="login-box">
+      <h2>Acesso Restrito</h2>
+      <input type="text" id="user" placeholder="Usuário">
+      <input type="password" id="pass" placeholder="Senha">
+      <button onclick="checkLogin()">Entrar</button>
+      <p id="login-error" style="color: red; display: none; margin-top: 10px; font-size: 12px;">Usuário ou senha incorretos!</p>
+    </div>
+  </div>
+
+  <div id="dashboard-content">
+    <div class="header-container">
+      <img src="https://raw.githubusercontent.com/CCN1989/Imagens/refs/heads/main/testeira.png" class="header-image">
+    </div>
+
+    <div class="header-subtitulo">
+      DASHBOARD - 2º Chamas da Poesia - CTG Chama Nativa - 2026
+    </div>
+
+    <div class="main-container">
+      <div class="filter-section">
+        <div class="filter-row">
+          <div class="filter-group"><label>Categoria</label><select id="f_cat" style="width: 180px;"></select></div>
+          <div class="filter-group"><label>Entidade</label><select id="f_ent" style="width: 250px;"></select></div>
+          <div class="filter-group"><label>Cidade</label><select id="f_cid" style="width: 180px;"></select></div>
+          <div class="filter-group"><label>Região</label><select id="f_reg" style="width: 120px;"></select></div>
+          <div class="filter-group"><label>Status</label><select id="f_sta" style="width: 150px;"></select></div>
+        </div>
+        <div style="text-align: center; margin-top: 15px;">
+          <button onclick="aplicarFiltros()" style="background: var(--header-color); color: white;">Filtrar</button>
+          <button onclick="limparFiltros()" style="background: #eee;">Limpar</button>
+          <button onclick="exportarPDF()" style="background: #D35400; color: white;">Gerar PDF</button>
+        </div>
+      </div>
+
+      <div class="kpi-container">
+        <div class="kpi-card"><div>Total Inscrições</div><div id="kpi_total" class="kpi-value" style="color: #4f4c2f">0</div></div>
+        <div class="kpi-card"><div>Qtd Entidades</div><div id="kpi_entidades" class="kpi-value" style="color: #4f4c2f">0</div></div>
+        <div class="kpi-card"><div>Status: Confirmada</div><div id="kpi_conf" class="kpi-value">0</div></div>
+        <div class="kpi-card"><div>Status: Lista de Espera</div><div id="kpi_esp" class="kpi-value">0</div></div>
+      </div>
+
+      <div class="charts-wrapper">
+        <div class="chart-box"><div id="chart_categorias"></div></div>
+        <div class="chart-box"><div id="chart_status"></div></div>
+      </div>
+
+      <a href="#" onclick="location.reload()" class="btn-sair">Sair / Logout</a>
+    </div>
+  </div>
+
+  <script>
+    // FUNÇÃO DE LOGIN
+    function checkLogin() {
+      const u = document.getElementById('user').value;
+      const p = document.getElementById('pass').value;
+
+      if (u === "Artistica" && p === "Cn1989") {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'flex';
+        carregarDadosIniciais(); // Só carrega os dados após o login
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
+
+    // --- MANTEMOS O RESTANTE DO SCRIPT ORIGINAL ---
+    let dadosOriginais = [];
+    google.charts.load('current', {'packages':['corechart'], 'language': 'pt-BR'});
+
+    function carregarDadosIniciais() {
+      google.script.run.withSuccessHandler(function(dados) {
+        dadosOriginais = dados;
+        popularListasSuspensas(dados);
+        processarERenderizar(dados);
+      }).getDadosDashboard();
+    }
+
+    function popularListasSuspensas(dados) {
+      const mapeamento = {'f_cat': 'categoria', 'f_ent': 'entidade', 'f_cid': 'cidade', 'f_reg': 'regiao', 'f_sta': 'status'};
+      for (let id in mapeamento) {
+        let campo = mapeamento[id];
+        let lista = [...new Set(dados.map(item => item[campo]))].filter(v => v).sort();
+        let select = document.getElementById(id);
+        select.innerHTML = '<option value="">Todos</option>';
+        lista.forEach(v => { select.innerHTML += `<option value="${v}">${v}</option>`; });
+      }
+    }
+
+    function aplicarFiltros() {
+      const filtrados = dadosOriginais.filter(item => {
+        return (!document.getElementById('f_cat').value || item.categoria === document.getElementById('f_cat').value) &&
+               (!document.getElementById('f_ent').value || item.entidade === document.getElementById('f_ent').value) &&
+               (!document.getElementById('f_cid').value || item.cidade === document.getElementById('f_cid').value) &&
+               (!document.getElementById('f_reg').value || item.regiao === document.getElementById('f_reg').value) &&
+               (!document.getElementById('f_sta').value || item.status === document.getElementById('f_sta').value);
+      });
+      processarERenderizar(filtrados);
+    }
+
+    function limparFiltros() {
+      document.querySelectorAll('select').forEach(s => s.value = "");
+      processarERenderizar(dadosOriginais);
+    }
+
+    function processarERenderizar(dados) {
+      document.getElementById('kpi_total').innerText = dados.length;
+      document.getElementById('kpi_entidades').innerText = [...new Set(dados.map(i => i.entidade))].length;
+      const conf = dados.filter(i => i.status === "CONFIRMADA").length;
+      const esp = dados.filter(i => i.status === "LISTA DE ESPERA").length;
+      document.getElementById('kpi_conf').innerText = conf;
+      document.getElementById('kpi_conf').style.color = "#2E7D32";
+      document.getElementById('kpi_esp').innerText = esp;
+      document.getElementById('kpi_esp').style.color = "#C62828";
+
+      renderizarGraficos(dados, conf, esp);
+    }
+
+    function renderizarGraficos(dados, conf, esp) {
+      let agrupar = {};
+      dados.forEach(d => agrupar[d.categoria] = (agrupar[d.categoria] || 0) + 1);
+      let dataCat = [['Categoria', 'Inscrições']];
+      Object.keys(agrupar).forEach(cat => dataCat.push([cat, agrupar[cat]]));
+
+      new google.visualization.ColumnChart(document.getElementById('chart_categorias')).draw(google.visualization.arrayToDataTable(dataCat), { title: 'POR CATEGORIA' });
+      
+      let dataSta = [['Status', 'Total', {role:'style'}], ['CONFIRMADA', conf, '#2E7D32'], ['ESPERA', esp, '#C62828']];
+      new google.visualization.BarChart(document.getElementById('chart_status')).draw(google.visualization.arrayToDataTable(dataSta), { title: 'STATUS' });
+    }
+
+    function exportarPDF() {
+      google.script.run.withSuccessHandler(url => window.open(url, '_blank')).gerarRelatorioPDF(dadosOriginais);
+    }
+  </script>
+</body>
+</html>
